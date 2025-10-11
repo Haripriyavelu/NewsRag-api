@@ -38,7 +38,7 @@ output "europe_endpoint_id" {
   value       = azurerm_traffic_manager_azure_endpoint.europe.id
 }
 
-output "india_endpoint_id" {
-  description = "ID of India endpoint"
-  value       = azurerm_traffic_manager_azure_endpoint.india.id
-}
+# output "india_endpoint_id" {
+#  description = "ID of India endpoint"
+#  value       = azurerm_traffic_manager_azure_endpoint.india.id
+# }
