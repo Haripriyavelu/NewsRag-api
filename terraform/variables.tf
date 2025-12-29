@@ -5,9 +5,13 @@
 
 # Environment Configuration
 variable "environment" {
-  description = "Environment name (dev, staging, prod)"
+  description = "Environment name (dev, prod)"
   type        = string
-  default     = "B1" # Basic tier - cheapest option for testing
+  default     = "dev"
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "Environment must be either 'dev' or 'prod'."
+  }
 }
 
 # Scaling Configuration
@@ -89,7 +93,7 @@ variable "app_settings" {
 variable "health_check_path" {
   description = "Health check endpoint path"
   type        = string
-  default     = "/health" # Your FastAPI app has this endpoint
+  default     = "/health/simple" # Simple health check without external dependencies
 }
 
 # Monitoring and Alerting
@@ -100,9 +104,9 @@ variable "alert_email" {
 }
 
 variable "slack_webhook_url" {
-  description = "Slack webhook URL for alerts (optional)"
+  description = "Slack webhook URL for alerts (optional) - Pass via TF_VAR_slack_webhook_url"
   type        = string
-  default     = "https://hooks.slack.com/services/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"
+  default     = ""
   sensitive   = true
 }
 

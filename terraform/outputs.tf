@@ -32,6 +32,27 @@ output "container_app_names" {
   }
 }
 
+# Container App URLs (for easy access)
+output "container_app_urls" {
+  description = "URLs for all deployed container apps"
+  value = {
+    for k, v in module.container_apps : k => "https://${v.container_app_fqdn}"
+  }
+}
+
 output "front_door_hostname" {
   value = length(module.front_door) > 0 ? module.front_door[0].frontdoor_endpoint_hostname : null
+}
+
+# Deployment Summary
+output "deployment_summary" {
+  description = "Summary of the deployment"
+  value = {
+    environment     = var.environment
+    regions         = keys(local.regions)
+    acr_name        = azurerm_container_registry.acr.name
+    front_door_url  = length(module.front_door) > 0 ? "https://${module.front_door[0].frontdoor_endpoint_hostname}" : "N/A (dev)"
+    container_apps  = { for k, v in module.container_apps : k => "https://${v.container_app_fqdn}" }
+    monitoring      = var.environment == "prod" ? "enabled" : "disabled"
+  }
 }

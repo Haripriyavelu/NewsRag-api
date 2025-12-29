@@ -76,12 +76,61 @@ jobs:
             # Name convention: ca-[project]-[region]-[env]
             APP_NAME="ca-${{ env.PROJECT_NAME }}-$REGION-${{ env.TF_ENV }}"
             
-            echo "Deploying to $APP_NAME in ${{ env.RG_NAME }}..."
+            echo "🚀 Deploying to $APP_NAME in ${{ env.RG_NAME }}..."
             
             az containerapp update \
               --name $APP_NAME \
               --resource-group ${{ env.RG_NAME }} \
               --image ${{ env.IMAGE_NAME }}
               
-             echo "✅ Deployed to $REGION"
+            echo "✅ Deployed to $REGION"
           done
+
+      - name: Verify Deployment Health
+        run: |
+          echo "🏥 Verifying deployment health..."
+          
+          if [[ "${{ env.TF_ENV }}" == "prod" ]]; then
+             REGIONS=("us" "uk")
+          else
+             REGIONS=("us")
+          fi
+          
+          FAILED_REGIONS=()
+          
+          for REGION in "${REGIONS[@]}"; do
+            APP_NAME="ca-${{ env.PROJECT_NAME }}-$REGION-${{ env.TF_ENV }}"
+            
+            # Get the FQDN of the container app
+            FQDN=$(az containerapp show \
+              --name $APP_NAME \
+              --resource-group ${{ env.RG_NAME }} \
+              --query "properties.configuration.ingress.fqdn" \
+              --output tsv)
+            
+            echo "🔍 Checking health for $REGION at https://$FQDN/health/simple"
+            
+            # Wait for health check (max 2 minutes)
+            HEALTHY=false
+            for i in {1..12}; do
+              if curl -sf "https://$FQDN/health/simple" > /dev/null 2>&1; then
+                echo "✅ $REGION is healthy!"
+                HEALTHY=true
+                break
+              fi
+              echo "⏳ Waiting for $REGION... attempt $i/12"
+              sleep 10
+            done
+            
+            if [[ "$HEALTHY" != "true" ]]; then
+              echo "❌ $REGION failed health check"
+              FAILED_REGIONS+=("$REGION")
+            fi
+          done
+          
+          if [[ ${#FAILED_REGIONS[@]} -gt 0 ]]; then
+            echo "❌ Health check failed for: ${FAILED_REGIONS[*]}"
+            exit 1
+          fi
+          
+          echo "🎉 All regions healthy!"
