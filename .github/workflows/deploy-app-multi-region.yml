@@ -76,7 +76,7 @@ jobs:
             # Name convention: ca-[project]-[region]-[env]
             APP_NAME="ca-${{ env.PROJECT_NAME }}-$REGION-${{ env.TF_ENV }}"
             
-            echo "🚀 Deploying to $APP_NAME in ${{ env.RG_NAME }}..."
+            echo "Deploying to $APP_NAME in ${{ env.RG_NAME }}..."
             
             az containerapp update \
               --name $APP_NAME \

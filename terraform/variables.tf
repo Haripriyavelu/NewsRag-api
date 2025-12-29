@@ -93,7 +93,7 @@ variable "app_settings" {
 variable "health_check_path" {
   description = "Health check endpoint path"
   type        = string
-  default     = "/health/simple" # Simple health check without external dependencies
+  default     = "/health" # Simple health check without external dependencies
 }
 
 # Monitoring and Alerting
